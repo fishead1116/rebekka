@@ -26,7 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             configuration.host = "ftp://speedtest.tele2.net"
             self.session = Session(configuration: configuration)
             
-            testList()
+            //testList()
+            testFileInfo()
             //testDownload()
             //testUpload()
             //testCreate()
@@ -39,6 +40,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             print("List directory with result:\n\(resources), error: \(error)\n\n")
         }
     }
+    
+    func testFileInfo() {
+        self.session.fileInfo("/1MB.zip", completionHandler: { (resource :ResourceItem?,error: NSError?) -> (Void) in
+            print("File Info:\n\(resource), error: \(error)\n\n")
+        })
+    }
+
     
     func testUpload() {
         if let URL = Bundle.main.url(forResource: "TestUpload", withExtension: "png") {

@@ -50,6 +50,42 @@ open class Session {
         self.operationQueue.addOperation(operation)
     }
     
+    open func fileInfo(_ path: String, completionHandler: @escaping FileInfoCompletionHandler) {
+        
+        let words = path.components(separatedBy: "/")
+        var folder = ""
+        var fileName = ""
+        if( words.count > 1 ){
+            
+            for word in words[ 0..<words.count-1]{
+                folder.append(word)
+                folder.append("/")
+            }
+            fileName = words[words.count-1]
+        }else{
+            folder = "/"
+            fileName = path
+        }
+        
+        list(folder) { (items : [ResourceItem]?,error: NSError?) in
+            guard error == nil else{
+                completionHandler(nil,error)
+                return
+            }
+            guard items != nil else{
+                completionHandler(nil,nil)
+                return
+            }
+            for item in items!{
+                if(item.name == fileName){
+                    completionHandler(item,nil)
+                    return
+                }
+            }
+            completionHandler(nil,nil)
+        }
+    
+    }
     /** Creates new directory at path. */
     open func createDirectory(_ path: String, completionHandler: @escaping BooleanResultCompletionHandler) {
         let operation = DirectoryCreationOperation(configuration: configuration, queue: self.streamQueue)
@@ -103,8 +139,12 @@ open class Session {
 }
 public typealias ResourceResultCompletionHandler = ([ResourceItem]?, NSError?) -> Void
 
+public typealias FileInfoCompletionHandler = (ResourceItem?, NSError?) -> (Void)
+
 public typealias FileURLResultCompletionHandler = (URL?, NSError?) -> Void
 public typealias BooleanResultCompletionHandler = (Bool, NSError?) -> Void
+
+public typealias FileTransferProgressHandler = (Int64,Int64) -> (Void)
 
 public let kFTPAnonymousUser = "anonymous"
 
