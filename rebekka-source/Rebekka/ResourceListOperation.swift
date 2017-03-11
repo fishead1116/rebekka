@@ -27,7 +27,7 @@ open class ResourceItem: CustomStringConvertible {
     open var name: String = ""
     open var link: String = ""
     open var date: Date = Date()
-    open var size: Int = 0
+    open var size: Int64 = 0
     open var mode: Int = 0
     open var owner: String = ""
     open var group: String = ""
@@ -35,7 +35,7 @@ open class ResourceItem: CustomStringConvertible {
     
     open var description: String {
         get {
-            return "\nResourceItem: \(name), \(type.rawValue)"
+            return "\nResourceItem: \(name), \(type.rawValue), size:\(size)bytes"
         }
     }
 }
@@ -112,7 +112,7 @@ internal class ResourceListOperation: ReadStreamOperation {
         if let link = ftpResources[kCFFTPResourceLink as String] as? String {
             item.link = link
         }
-        if let size = ftpResources[kCFFTPResourceSize as String] as? Int {
+        if let size = ftpResources[kCFFTPResourceSize as String] as? Int64 {
             item.size = size
         }
         if let type = ftpResources[kCFFTPResourceType as String] as? Int {
