@@ -27,8 +27,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             self.session = Session(configuration: configuration)
             
             //testList()
-            testFileInfo()
-            //testDownload()
+            //testFileInfo()
+            testDownload()
             //testUpload()
             //testCreate()
             return true
@@ -59,7 +59,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func testDownload() {
-        self.session.download("/1MB.zip") {
+        self.session.download("/1MB.zip", progressHandler: { (progress) in
+            print("Progress: \(progress)");
+        }) {
             (fileURL, error) -> Void in
             print("Download file with result:\n\(fileURL), error: \(error)\n\n")
             if let fileURL = fileURL {

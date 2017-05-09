@@ -14,6 +14,10 @@ internal class FileDownloadOperation: ReadStreamOperation {
     fileprivate var fileHandle: FileHandle?
     var fileURL: URL?
     
+    var downloadedBytes: Int64 = 0
+    var totalBytes: Int64 = 0
+    
+    
     override func start() {
         let filePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(UUID().uuidString)
         self.fileURL = URL(fileURLWithPath: filePath)
@@ -51,8 +55,12 @@ internal class FileDownloadOperation: ReadStreamOperation {
                 parsetBytes = inputStream.read(self.temporaryBuffer, maxLength: 1024)
                 if parsetBytes > 0 {
                     autoreleasepool {
+                        //autoreleasepool is aimed for Obj-C object
+                        //not sure if it is needed here
                         let data = Data(bytes: UnsafePointer<UInt8>(self.temporaryBuffer), count: parsetBytes)
                         self.fileHandle!.write(data)
+                        downloadedBytes += Int64(parsetBytes)
+                        progressHandler?(downloadedBytes,totalBytes)
                     }
                 }
             } while (parsetBytes > 0)

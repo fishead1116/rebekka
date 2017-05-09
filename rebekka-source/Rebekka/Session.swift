@@ -107,18 +107,47 @@ open class Session {
     /** 
     Downloads file at path from FTP server.
     File is stored in /tmp directory. Caller is responsible for deleting this file. */
-    open func download(_ path: String, completionHandler: @escaping FileURLResultCompletionHandler) {
-        let operation = FileDownloadOperation(configuration: configuration, queue: self.streamQueue)
-        operation.completionBlock = {
-            [weak operation] in
-            if let strongOperation = operation {
-                self.completionHandlerQueue.addOperation {
-                    completionHandler(strongOperation.fileURL, strongOperation.error)
+    open func download(_ path: String, progressHandler:  @escaping FileTransferProgressHandler,completionHandler: @escaping FileURLResultCompletionHandler) {
+        
+        if path.isEmpty {
+            return
+        }
+    
+        self.fileInfo(path, completionHandler: { (resource :ResourceItem?,error: NSError?) -> (Void) in
+            guard  resource != nil else{
+                return
+            }
+            
+            let operation = FileDownloadOperation(configuration: self.configuration, queue: self.streamQueue)
+
+            operation.totalBytes =  resource!.size
+            
+            operation.completionBlock = {
+                [weak operation] in
+                if let strongOperation = operation {
+                    self.completionHandlerQueue.addOperation {
+                        completionHandler(strongOperation.fileURL, strongOperation.error)
+                    }
                 }
             }
-        }
-        operation.path = path
-        self.operationQueue.addOperation(operation)
+            
+            operation.progressHandler = {
+                (downloaded : Int64, total : Int64) in
+                self.completionHandlerQueue.addOperation {
+                    progressHandler(downloaded,total)
+                }
+
+            }
+            
+            operation.path = path
+            self.operationQueue.addOperation(operation)
+
+
+            
+            
+        })
+
+
     }
     
     /** Uploads file from fileURL at path. */

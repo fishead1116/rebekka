@@ -15,6 +15,9 @@ internal class StreamOperation: Operation, StreamDelegate {
     
     fileprivate var currentStream: Stream?
     
+    var progressHandler: FileTransferProgressHandler?
+
+    
     init(configuration: SessionConfiguration, queue: DispatchQueue) {
         self.queue = queue
         super.init(configuration: configuration)
@@ -46,16 +49,16 @@ internal class StreamOperation: Operation, StreamDelegate {
         
         switch eventCode {
         case Stream.Event.openCompleted:
-            self.streamEventOpenComleted(aStream)
+            _ = self.streamEventOpenComleted(aStream)
         case Stream.Event.hasBytesAvailable:
-            self.streamEventHasBytes(aStream)
+            _ = self.streamEventHasBytes(aStream)
         case Stream.Event.hasSpaceAvailable:
-            self.streamEventHasSpace(aStream)
+            _ = self.streamEventHasSpace(aStream)
         case Stream.Event.errorOccurred:
-            self.streamEventError(aStream)
+            _ = self.streamEventError(aStream)
             self.finishOperation()
         case Stream.Event.endEncountered:
-            self.streamEventEnd(aStream)
+            _ = self.streamEventEnd(aStream)
             self.finishOperation()
         default:
             print("Unkonwn NSStreamEvent: \(eventCode)")
