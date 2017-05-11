@@ -67,7 +67,7 @@ open class Session {
             fileName = path
         }
         
-        list(folder) { (items : [ResourceItem]?,error: NSError?) in
+        list(folder) { (items : [ResourceItem]?,error: Error?) in
             guard error == nil else{
                 completionHandler(nil,error)
                 return
@@ -113,7 +113,7 @@ open class Session {
             return
         }
     
-        self.fileInfo(path, completionHandler: { (resource :ResourceItem?,error: NSError?) -> (Void) in
+        self.fileInfo(path, completionHandler: { (resource :ResourceItem?,error: Error?) -> (Void) in
             guard  resource != nil else{
                 return
             }
@@ -141,18 +141,25 @@ open class Session {
             
             operation.path = path
             self.operationQueue.addOperation(operation)
-
-
-            
-            
         })
-
-
     }
     
     /** Uploads file from fileURL at path. */
-    open func upload(_ fileURL: URL, path: String, completionHandler: @escaping BooleanResultCompletionHandler) {
+    open func upload(_ fileURL: URL, path: String,progressHandler:  @escaping FileTransferProgressHandler, completionHandler: @escaping BooleanResultCompletionHandler) {
+        
+        var fileSize : UInt64 = 0
+        do{
+        let attr = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+        
+        fileSize =  attr[FileAttributeKey.size] as! UInt64
+        
+        }catch let e {
+            completionHandler(false,e)
+            return
+        }
+        
         let operation = FileUploadOperation(configuration: configuration, queue: self.streamQueue)
+        operation.totalBytes = Int64(fileSize)
         operation.completionBlock = {
             [weak operation] in
             if let strongOperation = operation {
@@ -161,17 +168,25 @@ open class Session {
                 }
             }
         }
+        operation.progressHandler = {
+            (downloaded : Int64, total : Int64) in
+            self.completionHandlerQueue.addOperation {
+                progressHandler(downloaded,total)
+            }
+            
+        }
+
         operation.path = path
         operation.fileURL = fileURL
         self.operationQueue.addOperation(operation)
     }
 }
-public typealias ResourceResultCompletionHandler = ([ResourceItem]?, NSError?) -> Void
+public typealias ResourceResultCompletionHandler = ([ResourceItem]?, Error?) -> Void
 
-public typealias FileInfoCompletionHandler = (ResourceItem?, NSError?) -> (Void)
+public typealias FileInfoCompletionHandler = (ResourceItem?, Error?) -> (Void)
 
-public typealias FileURLResultCompletionHandler = (URL?, NSError?) -> Void
-public typealias BooleanResultCompletionHandler = (Bool, NSError?) -> Void
+public typealias FileURLResultCompletionHandler = (URL?, Error?) -> Void
+public typealias BooleanResultCompletionHandler = (Bool, Error?) -> Void
 
 public typealias FileTransferProgressHandler = (Int64,Int64) -> (Void)
 

@@ -13,6 +13,9 @@ internal class FileUploadOperation: WriteStreamOperation {
     fileprivate var fileHandle: FileHandle?
     var fileURL: URL!
     
+    var uploadedBytes: Int64 = 0
+    var totalBytes: Int64 = 0
+    
     override func start() {
         do {
             self.fileHandle = try FileHandle(forReadingFrom: fileURL)
@@ -40,7 +43,11 @@ internal class FileUploadOperation: WriteStreamOperation {
             let data = self.fileHandle!.readData(ofLength: 1024)
             let writtenBytes = writeStream.write((data as NSData).bytes.bindMemory(to: UInt8.self, capacity: data.count), maxLength: data.count)
             if writtenBytes > 0 {
+                self.uploadedBytes += Int64(writtenBytes)
                 self.fileHandle?.seek(toFileOffset: offsetInFile + UInt64(writtenBytes))
+                progressHandler?(uploadedBytes,totalBytes)
+                
+                
             } else if writtenBytes == -1 {
                 self.finishOperation()
             }

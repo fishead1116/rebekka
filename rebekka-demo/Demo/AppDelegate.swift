@@ -28,8 +28,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             //testList()
             //testFileInfo()
-            testDownload()
-            //testUpload()
+            //testDownload()
+            testUpload()
             //testCreate()
             return true
     }
@@ -42,7 +42,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func testFileInfo() {
-        self.session.fileInfo("/1MB.zip", completionHandler: { (resource :ResourceItem?,error: NSError?) -> (Void) in
+        self.session.fileInfo("/1MB.zip", completionHandler: { (resource :ResourceItem?,error: Error?) -> (Void) in
             print("File Info:\n\(resource), error: \(error)\n\n")
         })
     }
@@ -51,7 +51,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func testUpload() {
         if let URL = Bundle.main.url(forResource: "TestUpload", withExtension: "png") {
             let path = "/upload/\(UUID().uuidString).png"
-            self.session.upload(URL, path: path) {
+            self.session.upload(URL, path: path, progressHandler: { (progress) in
+                print("Progress: \(progress)");
+            }) {
                 (result, error) -> Void in
                 print("Upload file with result:\n\(result), error: \(error)\n\n")
             }
